@@ -11,11 +11,15 @@ void main() async {
 
 class MyCircle extends FlameGame with HasCollisionDetection {
   late Timer _circleSpawnTimer;
+  int _circleCount = 0;  //Counter to track the number of circles
+  final int _maxCircles = 100; //Maximum number of circles allowed
+
 
   @override
   Future<void> onLoad() async {
     // Add initial circle
     add(CirclePositionComponent());
+    _circleCount++;
 
     // Add the screen hitbox for boundary collisions
     add(ScreenHitbox());
@@ -31,7 +35,13 @@ class MyCircle extends FlameGame with HasCollisionDetection {
 
   // Function to add a new circle to the game
   void _spawnCircle() {
+    if(_circleCount < _maxCircles) {
     add(CirclePositionComponent());
+    _circleCount++; //Increment the circle count
+    } else {
+      //If the limit is reached, stop the timer
+      _circleSpawnTimer.stop();
+    }
   }
 
   @override

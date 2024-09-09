@@ -7,10 +7,12 @@ import 'package:flame/palette.dart';
 class CirclePositionComponent extends PositionComponent with CollisionCallbacks, HasGameReference {
   CirclePositionComponent({this.countActive = false});
 
+  bool isHalfSize = false; // Track if the circle is currently in its half-size state
   bool countActive;
   int count = 0;
   
-  
+  static const double fullSize = 100.0;
+  static const double halfSize = fullSize/2;
   static const int circleSpeed = 250;
   static const circleWidth = 100.0;
   static const circleHeight = 100.0;
@@ -41,7 +43,7 @@ class CirclePositionComponent extends PositionComponent with CollisionCallbacks,
   @override
   void onLoad() async {
     super.onLoad();
-    debugMode = true;
+    debugMode = false;
     screenWidth = game.size.x;
     screenHeight = game.size.y;
     // add(RectangleHitbox(
@@ -83,10 +85,12 @@ void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     // Check for collisions with the left and right of the screen
     if (collisionPoint.x <= tolerance) {
       // Invert X direction on left edge collision
+      _toggleSize();
       circleDirectionX = 1;
       position.x = tolerance;  // Move away from the edge
     } else if (collisionPoint.x >= game.size.x - circleWidth - tolerance) {
       // Invert X direction on right edge collision
+      _toggleSize();
       circleDirectionX = -1;
       position.x = game.size.x - circleWidth - tolerance;  // Move away from the edge
     }
@@ -95,14 +99,34 @@ void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     hitbox.paint.color = ColorExtension.random();
   }
 
-  if (other is CirclePositionComponent) {
-    // Reverse direction when colliding with another circle
-    other.x *= -1;
-    other.y *= 1;
+  if(other is CirclePositionComponent) {
+    //Reverse direction when colliding with another circle
+    circleDirectionX *=-1;
+    circleDirectionY *=-1;
+
+    CirclePositionComponent otherCircle = other;
+
+    // Reverse the direction of the other circle as well
+    otherCircle.circleDirectionX *= -1;
+    otherCircle.circleDirectionY *= -1;
   }
+
 
   super.onCollision(intersectionPoints, other);
 }
+
+  //Function to toggle between full size and half size
+  void _toggleSize() {
+    if(isHalfSize) {
+      //if currently half-size, return to full size
+      size = Vector2(fullSize, fullSize);
+
+    } else {
+      //If currently full-size, resize to half size
+      size = Vector2(halfSize, halfSize);
+    }
+    isHalfSize = !isHalfSize; //Toggle the flag
+  }
 
 
 }
