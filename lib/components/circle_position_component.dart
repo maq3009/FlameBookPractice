@@ -3,6 +3,7 @@ import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
+import 'package:flutter_rpg_game/components/player_component.dart';
 
 class CirclePositionComponent extends PositionComponent with CollisionCallbacks, HasGameReference {
   CirclePositionComponent({this.countActive = false});
@@ -97,6 +98,10 @@ void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
 
     // Change color on collision with screen boundaries
     hitbox.paint.color = ColorExtension.random();
+  }
+
+  if(other is PlayerComponent) {
+    removeFromParent();
   }
 
   if(other is CirclePositionComponent) {

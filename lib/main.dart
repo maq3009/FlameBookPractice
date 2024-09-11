@@ -10,7 +10,7 @@ void main() async {
   runApp(GameWidget(game: MyCircle()));
 }
 
-class MyCircle extends FlameGame with HasCollisionDetection, HasKeyboardHandlerComponents {
+class MyCircle extends FlameGame with HasCollisionDetection, KeyboardEvents, HasKeyboardHandlerComponents {
   late Timer _circleSpawnTimer;
   late PlayerComponent player;
   int _circleCount = 0;  //Counter to track the number of circles
