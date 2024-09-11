@@ -15,6 +15,7 @@ class PlayerComponent extends SpriteAnimationComponent
     super.anchor,
   });
 
+  bool collisionXRight = false, collisionXLeft = false;
   late double screenWidth, screenHeight, centerX, centerY;
   final double spriteSheetWidth = 1090, spriteSheetHeight = 984;
   int posX = 0, posY = 0;
@@ -76,21 +77,49 @@ class PlayerComponent extends SpriteAnimationComponent
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (event is KeyDownEvent) {
       // Handle key down events
+      //run right
+      if((keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
+        keysPressed.contains(LogicalKeyboardKey.keyD)) && 
+        keysPressed.contains(LogicalKeyboardKey.shiftLeft)) {
+          animation = dinoRunAnimation;
+          playerSpeed = 1500;
+          if(!right)flipHorizontally();
+          right = true;
+          if(!collisionXRight)posX++;
+        }
+      //run left
+      else if((keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
+            keysPressed.contains(LogicalKeyboardKey.keyA)) &&
+            keysPressed.contains(LogicalKeyboardKey.shiftLeft)) {
+              animation = dinoRunAnimation;
+              playerSpeed = 1500;
+              if(right)flipHorizontally();
+              right = false;
+              if(!collisionXLeft)posX--;
+      }
+    
+        
+      
+      //walk right
       if (keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
-          keysPressed.contains(LogicalKeyboardKey.keyD)) {
+          keysPressed.contains(LogicalKeyboardKey.keyD))  {
         animation = dinoWalkAnimation;
         playerSpeed = 500;
         if (!right) flipHorizontally();
         right = true;
         posX+=5;
+        if(!collisionXRight) posX++;
         return true;  // Indicate the event was handled
-      } else if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
-          keysPressed.contains(LogicalKeyboardKey.keyA)) {
+      //walk left
+      }
+       else if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
+        keysPressed.contains(LogicalKeyboardKey.keyA)) {
         animation = dinoWalkAnimation;
         playerSpeed = 500;
-        if (right) flipHorizontally();
+          if (right) flipHorizontally();
         right = false;
         posX-=5;
+        if(!collisionXLeft) posX--;
         return true;  // Indicate the event was handled
       }
     } else if (event is KeyUpEvent) {
@@ -107,6 +136,15 @@ class PlayerComponent extends SpriteAnimationComponent
     position.x += playerSpeed * dt * posX;
     position.y += playerSpeed * dt * posY;
 
+    //prevent the dino from moving off the left side
+    if(position.x - size.x / 2 < 0) {
+      position.x = size.x / 2;
+
+    }
+    //prevent dino from moving off the right side
+    if(position.x + size.x / 2 > screenWidth) {
+      position.x = screenWidth - size.x / 2;
+    }
     posX = 0;
     posY = 0;
     super.update(dt);
@@ -115,8 +153,10 @@ class PlayerComponent extends SpriteAnimationComponent
   @override
   void onCollision(Set<Vector2> points, PositionComponent other) {
     super.onCollision(points, other);
+    }
   }
-}
+
+
 
 // Extension to create animation from sprite sheet
 extension CreateAnimationByLimit on SpriteSheet {
