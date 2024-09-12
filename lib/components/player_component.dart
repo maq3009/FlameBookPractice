@@ -16,6 +16,7 @@ class PlayerComponent extends SpriteAnimationComponent
   });
 
   bool collisionXRight = false, collisionXLeft = false;
+  bool collisionYRight = false, collisionYLeft = false;
   late double screenWidth, screenHeight, centerX, centerY;
   final double spriteSheetWidth = 1090, spriteSheetHeight = 984;
   int posX = 0, posY = 0;
@@ -25,11 +26,13 @@ class PlayerComponent extends SpriteAnimationComponent
 
   bool right = true;
 
-  late SpriteAnimation dinoDeadAnimation,
+  late SpriteAnimation 
+      dinoDeadAnimation,
       dinoIdleAnimation,
       dinoJumpAnimation,
       dinoRunAnimation,
-      dinoWalkAnimation;
+      dinoWalkAnimation,
+      dinoWalkSlowAnimation;
 
   @override
   Future<void> onLoad() async {
@@ -54,7 +57,9 @@ class PlayerComponent extends SpriteAnimationComponent
         xInit: 5, yInit: 0, step: 8, sizeX: 6, stepTime: 0.08);
     dinoWalkAnimation = spriteSheet.createAnimationByLimit(
         xInit: 6, yInit: 2, step: 10, sizeX: 6, stepTime: 0.08);
-
+    dinoWalkSlowAnimation = spriteSheet.createAnimationByLimit(
+        xInit: 6, yInit: 2, step: 10, sizeX: 5, stepTime: .32,);
+    
     // Set initial animation
     animation = dinoIdleAnimation;
 
@@ -86,7 +91,7 @@ class PlayerComponent extends SpriteAnimationComponent
           if(!right)flipHorizontally();
           right = true;
           if(!collisionXRight)posX++;
-        }
+      }
       //run left
       else if((keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
             keysPressed.contains(LogicalKeyboardKey.keyA)) &&
@@ -110,8 +115,8 @@ class PlayerComponent extends SpriteAnimationComponent
         posX+=5;
         if(!collisionXRight) posX++;
         return true;  // Indicate the event was handled
-      //walk left
       }
+      //walk left
        else if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
         keysPressed.contains(LogicalKeyboardKey.keyA)) {
         animation = dinoWalkAnimation;
@@ -121,7 +126,32 @@ class PlayerComponent extends SpriteAnimationComponent
         posX-=5;
         if(!collisionXLeft) posX--;
         return true;  // Indicate the event was handled
+      } else {
+        animation = dinoWalkSlowAnimation;
       }
+
+    //Up
+    if(keysPressed.contains(LogicalKeyboardKey.arrowUp) ||
+      keysPressed.contains(LogicalKeyboardKey.keyW)) {
+        animation = dinoWalkAnimation;
+        playerSpeed = 500;
+          if (right) flipHorizontally();
+        right = false;
+        if(!collisionYRight)posY--;
+      }
+    //WalkSlow
+    
+    //down
+    if(keysPressed.contains(LogicalKeyboardKey.arrowDown)  ||
+      keysPressed.contains(LogicalKeyboardKey.keyS)) {
+        animation = dinoWalkAnimation;
+        playerSpeed = 500;
+          if (right) flipHorizontally();
+          right = false;
+        if(!collisionYRight)posY++;
+      }
+      return true;
+
     } else if (event is KeyUpEvent) {
       // Handle key up events (stop movement or return to idle state)
       animation = dinoIdleAnimation;
@@ -145,6 +175,18 @@ class PlayerComponent extends SpriteAnimationComponent
     if(position.x + size.x / 2 > screenWidth) {
       position.x = screenWidth - size.x / 2;
     }
+
+    //prevent dino from moving off the top of screen
+    if(position.y + size.y / 2 > screenHeight) {
+      position.y = screenHeight - size.y / 2;
+    }
+
+    //prevent dino from moving off the bottom of the screen
+    if(position.y - size.y / 2 < 0 ) {
+      position.y = size.y / 2;
+
+    }
+
     posX = 0;
     posY = 0;
     super.update(dt);
