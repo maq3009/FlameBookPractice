@@ -21,6 +21,8 @@ class PlayerComponent extends SpriteAnimationComponent
   final double spriteSheetWidth = 1090, spriteSheetHeight = 984;
   int posX = 0, posY = 0;
   double playerSpeed = 500;
+  double gravity = 1.8;
+  Vector2 velocity = Vector2(0,0);
 
   int animationIndex = 0;
 
@@ -185,6 +187,11 @@ class PlayerComponent extends SpriteAnimationComponent
     if(position.y - size.y / 2 < 0 ) {
       position.y = size.y / 2;
 
+    }
+
+    if(position.y < 800 - size.x) {
+      velocity.y += gravity;
+      position.y += velocity.y * dt;
     }
 
     posX = 0;
