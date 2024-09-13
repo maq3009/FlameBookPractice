@@ -17,8 +17,12 @@ class PlayerComponent extends SpriteAnimationComponent
 
   bool collisionXRight = false, collisionXLeft = false;
   bool collisionYRight = false, collisionYLeft = false;
+  bool right = true;
+  bool onGround = false;
+
   late double screenWidth, screenHeight, centerX, centerY;
   final double spriteSheetWidth = 1090, spriteSheetHeight = 984;
+  final double jumpForce = 130;
   int posX = 0, posY = 0;
   double playerSpeed = 500;
   double gravity = 1.8;
@@ -26,7 +30,6 @@ class PlayerComponent extends SpriteAnimationComponent
 
   int animationIndex = 0;
 
-  bool right = true;
 
   late SpriteAnimation 
       dinoDeadAnimation,
@@ -42,7 +45,7 @@ class PlayerComponent extends SpriteAnimationComponent
     debugMode = true;
 
     // Load sprite sheet
-    final spriteImage = await Flame.images.load('dinoFull.png');
+    final spriteImage = await Flame.images.load('dinoFull.jpeg');
     final spriteSheet = SpriteSheet(
       image: spriteImage,
       srcSize: Vector2((spriteSheetWidth / 6) , spriteSheetHeight / 8),
@@ -132,14 +135,15 @@ class PlayerComponent extends SpriteAnimationComponent
         animation = dinoWalkSlowAnimation;
       }
 
-    //Up
-    if(keysPressed.contains(LogicalKeyboardKey.arrowUp) ||
-      keysPressed.contains(LogicalKeyboardKey.keyW)) {
-        animation = dinoWalkAnimation;
+    //Up/Jump
+    if(keysPressed.contains(LogicalKeyboardKey.space)) {
+        animation = dinoJumpAnimation;
         playerSpeed = 500;
           if (right) flipHorizontally();
         right = false;
         if(!collisionYRight)posY--;
+        velocity.y = -jumpForce;
+        position.y -= 15;
       }
     //WalkSlow
     
@@ -188,10 +192,13 @@ class PlayerComponent extends SpriteAnimationComponent
       position.y = size.y / 2;
 
     }
-
+    //implementing gravity
     if(position.y < 800 - size.x) {
       velocity.y += gravity;
       position.y += velocity.y * dt;
+      onGround = false;
+    } else {
+      onGround = true;
     }
 
     posX = 0;
