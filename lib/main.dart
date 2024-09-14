@@ -18,6 +18,12 @@ class MyCircle extends FlameGame with HasCollisionDetection, KeyboardEvents, Has
 
 
   @override
+  Color backgroundColor() {
+    return Colors.purple.shade200;
+  }
+
+
+  @override
   Future<void> onLoad() async {
     player = PlayerComponent();
     add(player);

@@ -4,40 +4,11 @@ import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flame/collisions.dart';
+import 'package:flutter_rpg_game/components/character.dart';
 import 'package:flutter_rpg_game/main.dart';
 import 'package:flame/input.dart';  // Make sure to import the Flame input package
 
-class PlayerComponent extends SpriteAnimationComponent
-    with KeyboardHandler, CollisionCallbacks, HasGameReference<MyCircle> {
-  PlayerComponent({
-    super.position,
-    super.size,
-    super.anchor,
-  });
-
-  bool collisionXRight = false, collisionXLeft = false;
-  bool collisionYRight = false, collisionYLeft = false;
-  bool right = true;
-  bool onGround = false;
-
-  late double screenWidth, screenHeight, centerX, centerY;
-  final double spriteSheetWidth = 1090, spriteSheetHeight = 984;
-  final double jumpForce = 130;
-  int posX = 0, posY = 0;
-  double playerSpeed = 500;
-  double gravity = 1.8;
-  Vector2 velocity = Vector2(0,0);
-
-  int animationIndex = 0;
-
-
-  late SpriteAnimation 
-      dinoDeadAnimation,
-      dinoIdleAnimation,
-      dinoJumpAnimation,
-      dinoRunAnimation,
-      dinoWalkAnimation,
-      dinoWalkSlowAnimation;
+class PlayerComponent extends Character with HasGameReference<MyCircle> {
 
   @override
   Future<void> onLoad() async {
@@ -45,28 +16,28 @@ class PlayerComponent extends SpriteAnimationComponent
     debugMode = true;
 
     // Load sprite sheet
-    final spriteImage = await Flame.images.load('dinoFull.jpeg');
+    final spriteImage = await Flame.images.load('dinoFull.png');
     final spriteSheet = SpriteSheet(
       image: spriteImage,
       srcSize: Vector2((spriteSheetWidth / 6) , spriteSheetHeight / 8),
     );
 
     // Initialize animations
-    dinoDeadAnimation = spriteSheet.createAnimationByLimit(
-        xInit: 0, yInit: 0, step: 8, sizeX: 6, stepTime: 0.08);
-    dinoIdleAnimation = spriteSheet.createAnimationByLimit(
-        xInit: 1, yInit: 2, step: 10, sizeX: 6, stepTime: 0.08);
-    dinoJumpAnimation = spriteSheet.createAnimationByLimit(
-        xInit: 3, yInit: 0, step: 12, sizeX: 6, stepTime: 0.08);
-    dinoRunAnimation = spriteSheet.createAnimationByLimit(
-        xInit: 5, yInit: 0, step: 8, sizeX: 6, stepTime: 0.08);
-    dinoWalkAnimation = spriteSheet.createAnimationByLimit(
-        xInit: 6, yInit: 2, step: 10, sizeX: 6, stepTime: 0.08);
-    dinoWalkSlowAnimation = spriteSheet.createAnimationByLimit(
-        xInit: 6, yInit: 2, step: 10, sizeX: 5, stepTime: .32,);
+    deadAnimation = spriteSheet.createAnimationByLimit(
+        xInit: 0, yInit: 0, step: 8, sizeX: 5, stepTime: 0.08);
+    idleAnimation = spriteSheet.createAnimationByLimit(
+        xInit: 1, yInit: 2, step: 10, sizeX: 5, stepTime: 0.08);
+    jumpAnimation = spriteSheet.createAnimationByLimit(
+        xInit: 3, yInit: 0, step: 12, sizeX: 5, stepTime: 0.08);
+    runAnimation = spriteSheet.createAnimationByLimit(
+        xInit: 5, yInit: 0, step: 8, sizeX: 5, stepTime: 0.08);
+    walkAnimation = spriteSheet.createAnimationByLimit(
+        xInit: 6, yInit: 2, step: 10, sizeX: 5, stepTime: 0.08);
+    walkSlowAnimation = spriteSheet.createAnimationByLimit(
+        xInit: 6, yInit: 2, step: 10, sizeX: 5, stepTime: 0.08,);
     
     // Set initial animation
-    animation = dinoIdleAnimation;
+    animation = idleAnimation;
 
     // Get screen size from the game
     screenWidth = game.size.x;
@@ -77,10 +48,11 @@ class PlayerComponent extends SpriteAnimationComponent
     centerY = (screenHeight / 2) - (spriteSheetHeight /8);
     position = Vector2(centerX, centerY);
 
+
     // Add collision hitbox
     add(RectangleHitbox(
     size: Vector2(spriteSheetWidth / 6, spriteSheetHeight / 8),
-    position: Vector2(0, 0)));
+    position: Vector2(0,0)));
   }
 
   @override
@@ -91,7 +63,7 @@ class PlayerComponent extends SpriteAnimationComponent
       if((keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
         keysPressed.contains(LogicalKeyboardKey.keyD)) && 
         keysPressed.contains(LogicalKeyboardKey.shiftLeft)) {
-          animation = dinoRunAnimation;
+          animation = runAnimation;
           playerSpeed = 1500;
           if(!right)flipHorizontally();
           right = true;
@@ -101,7 +73,7 @@ class PlayerComponent extends SpriteAnimationComponent
       else if((keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
             keysPressed.contains(LogicalKeyboardKey.keyA)) &&
             keysPressed.contains(LogicalKeyboardKey.shiftLeft)) {
-              animation = dinoRunAnimation;
+              animation = runAnimation;
               playerSpeed = 1500;
               if(right)flipHorizontally();
               right = false;
@@ -113,7 +85,7 @@ class PlayerComponent extends SpriteAnimationComponent
       //walk right
       if (keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
           keysPressed.contains(LogicalKeyboardKey.keyD))  {
-        animation = dinoWalkAnimation;
+        animation = walkAnimation;
         playerSpeed = 500;
         if (!right) flipHorizontally();
         right = true;
@@ -124,7 +96,7 @@ class PlayerComponent extends SpriteAnimationComponent
       //walk left
        else if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
         keysPressed.contains(LogicalKeyboardKey.keyA)) {
-        animation = dinoWalkAnimation;
+        animation = walkAnimation;
         playerSpeed = 500;
           if (right) flipHorizontally();
         right = false;
@@ -132,12 +104,12 @@ class PlayerComponent extends SpriteAnimationComponent
         if(!collisionXLeft) posX--;
         return true;  // Indicate the event was handled
       } else {
-        animation = dinoWalkSlowAnimation;
+        animation = walkSlowAnimation;
       }
 
     //Up/Jump
     if(keysPressed.contains(LogicalKeyboardKey.space)) {
-        animation = dinoJumpAnimation;
+        animation = jumpAnimation;
         playerSpeed = 500;
           if (right) flipHorizontally();
         right = false;
@@ -150,7 +122,7 @@ class PlayerComponent extends SpriteAnimationComponent
     //down
     if(keysPressed.contains(LogicalKeyboardKey.arrowDown)  ||
       keysPressed.contains(LogicalKeyboardKey.keyS)) {
-        animation = dinoWalkAnimation;
+        animation = walkAnimation;
         playerSpeed = 500;
           if (right) flipHorizontally();
           right = false;
@@ -160,7 +132,7 @@ class PlayerComponent extends SpriteAnimationComponent
 
     } else if (event is KeyUpEvent) {
       // Handle key up events (stop movement or return to idle state)
-      animation = dinoIdleAnimation;
+      animation = idleAnimation;
       return true;  // Indicate the event was handled
     }
 
@@ -207,8 +179,37 @@ class PlayerComponent extends SpriteAnimationComponent
   }
 
   @override
-  void onCollision(Set<Vector2> points, PositionComponent other) {
-    super.onCollision(points, other);
+  void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent other) {
+    if(other is ScreenHitbox) {
+      if(intersectionPoints.first[0] <= 0.0) {
+        //left
+        collisionXLeft = true;
+      } else if (intersectionPoints.first[0] >= game.size.x) {
+      collisionXRight = true;
+      }
+      super.onCollisionStart(intersectionPoints, other);  //left
+    }
+
+
+    // final firstPoint = intersectionPoints.first;
+
+    // double collisionX = firstPoint.x;
+    // double collisionY = firstPoint.y;
+
+    // if (collisionX <= 0.0) {
+    //   //Left side collision
+    // } else if (collisionX >= game.size.x) {
+    //   //Right side collision
+    // }
+    
+    // if (collisionY <= 0.0) {
+    //   //Up collision
+    // } else if (collisionY >= game.size.y) {
+    //   //down collision
+    // }
+    
+    
+    super.onCollision(intersectionPoints, other);
     }
   }
 
